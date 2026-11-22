@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="압력변환기" />
+<title>압력 단위 변환기 (kg/cm² · psi · bar)</title>
+<style>
+:root {
+--bg: #f4f6f9;
+--card: #ffffff;
+--text: #111827;
+--sub: #6b7280;
+--border: #e5e7eb;
+--primary: #2563eb;
+--primary-soft: #eff6ff;
+--primary-border: #93c5fd;
+--input-bg: #f9fafb;
+--badge-bg: #f3f4f6;
+--success: #059669;
+--shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+body.dark {
+--bg: #0f172a;
+--card: #1e293b;
+--text: #f8fafc;
+--sub: #94a3b8;
+--border: #334155;
+--primary: #3b82f6;
+--primary-soft: rgba(59, 130, 246, 0.16);
+--primary-border: #3b82f6;
+--input-bg: #0f172a;
+--badge-bg: #334155;
+--success: #10b981;
+--shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+* {
+box-sizing: border-box;
+-webkit-tap-highlight-color: transparent;
+}
+
+body {
+margin: 0;
+padding: 16px;
+font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
+background-color: var(--bg);
+color: var(--text);
+transition: background-color 0.2s, color 0.2s;
+display: flex;
+justify-content: center;
+}
+
+.container {
+width: 100%;
+max-width: 480px;
+display: flex;
+flex-direction: column;
+gap: 14px;
+}
+
+.header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 4px 2px;
+}
+
+.header h1 {
+margin: 0;
+font-size: 1.25rem;
+font-weight: 700;
+letter-spacing: -0.02em;
+}
+
+.header-actions {
+display: flex;
+gap: 6px;
+}
+
+.icon-btn {
+background: var(--card);
+border: 1px solid var(--border);
+color: var(--text);
+border-radius: 10px;
+padding: 7px 10px;
+font-size: 0.8rem;
+font-weight: 600;
+cursor: pointer;
+display: flex;
+align-items: center;
+gap: 4px;
+}
+
+.icon-btn:active {
+transform: scale(0.97);
+}
+
+.card {
+background: var(--card);
+border: 1px solid var(--border);
+border-radius: 16px;
+padding: 16px;
+box-shadow: var(--shadow);
+}
+
+.section-label {
+font-size: 0.78rem;
+font-weight: 700;
+color: var(--sub);
+margin-bottom: 10px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.preset-grid {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 8px;
+}
+
+.preset-btn {
+background: var(--input-bg);
+border: 1.5px solid var(--border);
+color: var(--text);
+border-radius: 12px;
+padding: 11px 10px;
+font-size: 0.9rem;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.15s;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 2px;
+}
+
+.preset-btn span.val {
+font-size: 1.05rem;
+font-weight: 800;
+color: var(--primary);
+}
+
+.preset-btn span.desc {
+font-size: 0.78rem;
+color: var(--sub);
+}
+
+.preset-btn.active {
+background: var(--primary-soft);
+border-color: var(--primary-border);
+box-shadow: 0 0 0 1px var(--primary-border);
+}
+
+.input-group {
+display: flex;
+flex-direction: column;
+gap: 12px;
+}
+
+.unit-row {
+display: flex;
+flex-direction: column;
+gap: 5px;
+}
+
+.unit-top {
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.unit-name {
+font-size: 0.85rem;
+font-weight: 700;
+}
+
+.unit-sub {
+font-size: 0.75rem;
+color: var(--sub);
+font-weight: 500;
+}
+
+.input-wrap {
+display: flex;
+align-items: center;
+background: var(--input-bg);
+border: 1.5px solid var(--border);
+border-radius: 12px;
+padding: 4px 8px 4px 14px;
+transition: border-color 0.15s;
+}
+
+.input-wrap:focus-within {
+border-color: var(--primary);
+}
+
+.input-wrap input {
+width: 100%;
+border: none;
+background: transparent;
+color: var(--text);
+font-size: 1.35rem;
+font-weight: 700;
+outline: none;
+padding: 8px 0;
+font-variant-numeric: tabular-nums;
+}
+
+.unit-badge {
+font-size: 0.85rem;
+font-weight: 700;
+color: var(--sub);
+margin-right: 8px;
+white-space: nowrap;
+}
+
+.copy-btn {
+background: var(--card);
+border: 1px solid var(--border);
+color: var(--text);
+border-radius: 8px;
+padding: 6px 10px;
+font-size: 0.75rem;
+font-weight: 600;
+cursor: pointer;
+white-space: nowrap;
+}
+
+.copy-btn.copied {
+border-color: var(--success);
+color: var(--success);
+}
+
+.sub-units {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 8px;
+margin-top: 12px;
+padding-top: 12px;
+border-top: 1px dashed var(--border);
+}
+
+.sub-box {
+background: var(--badge-bg);
+border-radius: 10px;
+padding: 10px 12px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+cursor: pointer;
+}
+
+.sub-box .label {
+font-size: 0.78rem;
+color: var(--sub);
+font-weight: 600;
+}
+
+.sub-box .num {
+font-size: 0.95rem;
+font-weight: 700;
+font-variant-numeric: tabular-nums;
+}
+
+/* 기기별 저장 / 설치 섹션 */
+.download-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 8px;
+}
+
+.dl-btn {
+background: var(--input-bg);
+border: 1px solid var(--border);
+color: var(--text);
+border-radius: 12px;
+padding: 12px 6px;
+font-size: 0.82rem;
+font-weight: 700;
+cursor: pointer;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 6px;
+transition: all 0.15s;
+}
+
+.dl-btn:hover, .dl-btn:active {
+border-color: var(--primary);
+background: var(--primary-soft);
+}
+
+.dl-icon {
+font-size: 1.3rem;
+}
+
+.dl-sub {
+font-size: 0.7rem;
+color: var(--sub);
+font-weight: 500;
+}
+
+/* iOS 안내 모달 */
+.modal-backdrop {
+display: none;
+position: fixed;
+inset: 0;
+background: rgba(0, 0, 0, 0.55);
+z-index: 100;
+align-items: flex-end;
+justify-content: center;
+padding: 16px;
+}
+
+.modal-backdrop.open {
+display: flex;
+}
+
+.modal-sheet {
+background: var(--card);
+color: var(--text);
+border-radius: 20px;
+width: 100%;
+max-width: 440px;
+padding: 20px;
+box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+from { transform: translateY(20px); opacity: 0; }
+to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-sheet h3 {
+margin: 0 0 10px 0;
+font-size: 1.05rem;
+}
+
+.modal-sheet ol {
+margin: 0 0 16px 0;
+padding-left: 20px;
+font-size: 0.88rem;
+line-height: 1.65;
+color: var(--text);
+}
+
+.modal-close {
+width: 100%;
+background: var(--primary);
+color: #ffffff;
+border: none;
+border-radius: 12px;
+padding: 12px;
+font-size: 0.92rem;
+font-weight: 700;
+cursor: pointer;
+}
+
+.toast {
+position: fixed;
+bottom: 24px;
+left: 50%;
+transform: translateX(-50%) translateY(20px);
+background: #111827;
+color: #ffffff;
+padding: 10px 18px;
+border-radius: 999px;
+font-size: 0.84rem;
+font-weight: 600;
+opacity: 0;
+pointer-events: none;
+transition: all 0.25s;
+z-index: 200;
+white-space: nowrap;
+}
+
+.toast.show {
+opacity: 1;
+transform: translateX(-50%) translateY(0);
+}
+</style>
+</head>
+<body>
+<div class="container">
+<!-- 상단 헤더 -->
+<div class="header">
+<h1>압력 단위 변환기</h1>
+<div class="header-actions">
+<button class="icon-btn" id="decBtn" title="소수점 자릿수 변경">소수점 2자리</button>
+<button class="icon-btn" id="resetBtn" title="5 kg/cm²로 초기화">초기화</button>
+<button class="icon-btn" id="themeBtn" title="다크모드 전환">🌙</button>
+</div>
+</div>
+
+<!-- 프리셋 카드 -->
+<div class="card">
+<div class="section-label">
+<span>빠른 프리셋 (kg/cm² 기준)</span>
+<span>터치하여 즉시 변환</span>
+</div>
+<div class="preset-grid" id="presetGrid">
+<button class="preset-btn active" data-kg="5">
+<span class="val">5 kg/cm²</span>
+<span class="desc">화물 (기본)</span>
+</button>
+<button class="preset-btn" data-kg="5.3">
+<span class="val">5.3 kg/cm²</span>
+<span class="desc">KTX 구원</span>
+</button>
+<button class="preset-btn" data-kg="6">
+<span class="val">6 kg/cm²</span>
+<span class="desc">여객</span>
+</button>
+<button class="preset-btn" data-kg="9">
+<span class="val">9 kg/cm²</span>
+<span class="desc">주공기</span>
+</button>
+</div>
+</div>
+
+<!-- 변환 입력 카드 -->
+<div class="card">
+<div class="input-group">
+<!-- kg/cm2 -->
+<div class="unit-row">
+<div class="unit-top">
+<span class="unit-name">중량킬로그램/제곱센티미터</span>
+<span class="unit-sub">1 kg/cm² = 14.2233 psi</span>
+</div>
+<div class="input-wrap">
+<input type="number" id="inputKg" inputmode="decimal" step="any" placeholder="0" />
+<span class="unit-badge">kg/cm²</span>
+<button class="copy-btn" data-target="inputKg" data-unit="kg/cm²">복사</button>
+</div>
+</div>
+
+<!-- psi -->
+<div class="unit-row">
+<div class="unit-top">
+<span class="unit-name">프사이 (파운드/제곱인치)</span>
+<span class="unit-sub">1 psi = 0.07031 kg/cm²</span>
+</div>
+<div class="input-wrap">
+<input type="number" id="inputPsi" inputmode="decimal" step="any" placeholder="0" />
+<span class="unit-badge">psi</span>
+<button class="copy-btn" data-target="inputPsi" data-unit="psi">복사</button>
+</div>
+</div>
+
+<!-- bar -->
+<div class="unit-row">
+<div class="unit-top">
+<span class="unit-name">바 (Bar)</span>
+<span class="unit-sub">1 bar = 1.01972 kg/cm²</span>
+</div>
+<div class="input-wrap">
+<input type="number" id="inputBar" inputmode="decimal" step="any" placeholder="0" />
+<span class="unit-badge">bar</span>
+<button class="copy-btn" data-target="inputBar" data-unit="bar">복사</button>
+</div>
+</div>
+</div>
+
+<!-- 보조 단위 (kPa / MPa) -->
+<div class="sub-units">
+<div class="sub-box" id="copyKpa" title="클릭하여 복사">
+<span class="label">kPa</span>
+<span class="num" id="valKpa">490.33</span>
+</div>
+<div class="sub-box" id="copyMpa" title="클릭하여 복사">
+<span class="label">MPa</span>
+<span class="num" id="valMpa">0.49</span>
+</div>
+</div>
+</div>
+
+<!-- 기기별 저장 및 오프라인 사용 버튼 -->
+<div class="card">
+<div class="section-label">
+<span>기기 저장 및 오프라인 사용</span>
+<span>데이터 없이 실행 가능</span>
+</div>
+<div class="download-grid">
+<button class="dl-btn" id="dlAndroid">
+<span class="dl-icon">🤖</span>
+<span>Android</span>
+<span class="dl-sub">HTML 파일 저장</span>
+</button>
+<button class="dl-btn" id="dlIos">
+<span class="dl-icon">🍎</span>
+<span>iPhone</span>
+<span class="dl-sub">홈 화면 앱 추가</span>
+</button>
+<button class="dl-btn" id="dlPc">
+<span class="dl-icon">💻</span>
+<span>PC 저장</span>
+<span class="dl-sub">로컬 파일 다운로드</span>
+</button>
+</div>
+</div>
+</div>
+
+<!-- iOS 홈 화면 추가 안내 모달 -->
+<div class="modal-backdrop" id="iosModal">
+<div class="modal-sheet">
+<h3>🍎 아이폰 홈 화면에 추가하기</h3>
+<ol>
+<li>Safari 브라우저 하단(또는 우측 상단)의 <strong>공유 버튼(□↑)</strong>을 누릅니다.</li>
+<li>메뉴를 아래로 내려 <strong>[홈 화면에 추가]</strong>를 선택합니다.</li>
+<li>우측 상단 <strong>[추가]</strong>를 누르면 바탕화면에 앱 아이콘이 생성되어 바로 실행할 수 있습니다.</li>
+</ol>
+<button class="modal-close" id="closeIosModal">확인</button>
+</div>
+</div>
+
+<!-- 알림 토스트 -->
+<div class="toast" id="toast"></div>
+
+<script>
+// 환산 상수 (1 kg/cm² 기준)
+const KG_TO_PSI = 14.2233433;
+const KG_TO_BAR = 0.980665;
+const KG_TO_KPA = 98.0665;
+const KG_TO_MPA = 0.0980665;
+
+let decimals = 2;
+let currentKg = 5;
+
+const inputKg = document.getElementById('inputKg');
+const inputPsi = document.getElementById('inputPsi');
+const inputBar = document.getElementById('inputBar');
+const valKpa = document.getElementById('valKpa');
+const valMpa = document.getElementById('valMpa');
+const presetBtns = document.querySelectorAll('.preset-btn');
+const decBtn = document.getElementById('decBtn');
+const resetBtn = document.getElementById('resetBtn');
+const themeBtn = document.getElementById('themeBtn');
+const toast = document.getElementById('toast');
+
+function showToast(msg) {
+toast.textContent = msg;
+toast.classList.add('show');
+clearTimeout(window.__toastTimer);
+window.__toastTimer = setTimeout(() => {
+toast.classList.remove('show');
+}, 2200);
+}
+
+function formatNum(num) {
+if (isNaN(num) || num === null) return '';
+return Number(num.toFixed(decimals)).toString();
+}
+
+function updatePresetHighlight(kgVal) {
+presetBtns.forEach((btn) => {
+const target = parseFloat(btn.dataset.kg);
+if (!isNaN(kgVal) && Math.abs(kgVal - target) < 0.001) {
+btn.classList.add('active');
+} else {
+btn.classList.remove('active');
+}
+});
+}
+
+function updateFromKg(kg, skipKgInput = false) {
+currentKg = kg;
+if (isNaN(kg)) {
+if (!skipKgInput) inputKg.value = '';
+inputPsi.value = '';
+inputBar.value = '';
+valKpa.textContent = '0';
+valMpa.textContent = '0';
+updatePresetHighlight(NaN);
+return;
+}
+if (!skipKgInput) inputKg.value = formatNum(kg);
+inputPsi.value = formatNum(kg * KG_TO_PSI);
+inputBar.value = formatNum(kg * KG_TO_BAR);
+valKpa.textContent = formatNum(kg * KG_TO_KPA);
+valMpa.textContent = formatNum(kg * KG_TO_MPA);
+updatePresetHighlight(kg);
+}
+
+inputKg.addEventListener('input', () => {
+const val = parseFloat(inputKg.value);
+updateFromKg(val, true);
+});
+
+inputPsi.addEventListener('input', () => {
+const val = parseFloat(inputPsi.value);
+if (isNaN(val)) {
+inputKg.value = '';
+inputBar.value = '';
+valKpa.textContent = '0';
+valMpa.textContent = '0';
+updatePresetHighlight(NaN);
+return;
+}
+const kg = val / KG_TO_PSI;
+currentKg = kg;
+inputKg.value = formatNum(kg);
+inputBar.value = formatNum(kg * KG_TO_BAR);
+valKpa.textContent = formatNum(kg * KG_TO_KPA);
+valMpa.textContent = formatNum(kg * KG_TO_MPA);
+updatePresetHighlight(kg);
+});
+
+inputBar.addEventListener('input', () => {
+const val = parseFloat(inputBar.value);
+if (isNaN(val)) {
+inputKg.value = '';
+inputPsi.value = '';
+valKpa.textContent = '0';
+valMpa.textContent = '0';
+updatePresetHighlight(NaN);
+return;
+}
+const kg = val / KG_TO_BAR;
+currentKg = kg;
+inputKg.value = formatNum(kg);
+inputPsi.value = formatNum(kg * KG_TO_PSI);
+valKpa.textContent = formatNum(kg * KG_TO_KPA);
+valMpa.textContent = formatNum(kg * KG_TO_MPA);
+updatePresetHighlight(kg);
+});
+
+presetBtns.forEach((btn) => {
+btn.addEventListener('click', () => {
+const kg = parseFloat(btn.dataset.kg);
+updateFromKg(kg, false);
+});
+});
+
+decBtn.addEventListener('click', () => {
+decimals = decimals === 2 ? 4 : 2;
+decBtn.textContent = 소수점 ${decimals}자리`;
+if (!isNaN(currentKg)) updateFromKg(currentKg, false);
+});
+
+resetBtn.addEventListener('click', () => {
+updateFromKg(5, false);
+showToast('기본값 5 kg/cm²로 초기화되었습니다.');
+});
+
+themeBtn.addEventListener('click', () => {
+document.body.classList.toggle('dark');
+const isDark = document.body.classList.contains('dark');
+themeBtn.textContent = isDark ? '☀️' : '🌙';
+});
+
+// 복사 기능
+document.querySelectorAll('.copy-btn').forEach((btn) => {
+btn.addEventListener('click', () => {
+const input = document.getElementById(btn.dataset.target);
+if (!input.value) return;
+const text = ``${input.value} {text}`);
+setTimeout(() => {
+btn.textContent = '복사';
+btn.classList.remove('copied');
+}, 1200);
+});
+});
+
+document.getElementById('copyKpa').addEventListener('click', () => {
+const text = ${valKpa.textContent} kPa; navigator.clipboard?.writeText(text); showToast(복사됨: ${text});
+});
+
+document.getElementById('copyMpa').addEventListener('click', () => {
+const text = ${valMpa.textContent} MPa; navigator.clipboard?.writeText(text); showToast(복사됨: ${text});
+});
+
+// HTML 파일 오프라인 다운로드 함수 (Android / PC 공용)
+function downloadOfflineHtml(filename) {
+// 다운로드 파일 생성 시 모달이 열려있거나 다크모드 상태가 그대로 저장되지 않도록 정리
+const clone = document.documentElement.cloneNode(true);
+clone.querySelector('#iosModal')?.classList.remove('open');
+clone.querySelector('#toast')?.classList.remove('show');
+
+const htmlContent = '<!DOCTYPE html>\n' + clone.outerHTML;
+const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+const url = URL.createObjectURL(blob);
+
+const a = document.createElement('a');
+a.href = url;
+a.download = filename;
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+document.getElementById('dlAndroid').addEventListener('click', () => {
+downloadOfflineHtml('압력단위변환기_오프라인.html');
+showToast('다운로드 폴더에 HTML 파일이 저장되었습니다.');
+});
+
+document.getElementById('dlPc').addEventListener('click', () => {
+downloadOfflineHtml('pressure_calculator.html');
+showToast('PC에 HTML 파일이 다운로드되었습니다.');
+});
+
+// iOS 안내 모달 제어
+const iosModal = document.getElementById('iosModal');
+document.getElementById('dlIos').addEventListener('click', () => {
+iosModal.classList.add('open');
+});
+document.getElementById('closeIosModal').addEventListener('click', () => {
+iosModal.classList.remove('open');
+});
+iosModal.addEventListener('click', (e) => {
+if (e.target === iosModal) iosModal.classList.remove('open');
+});
+
+// 초기 실행 시 5 kg/cm² 설정
+updateFromKg(5, false);
+</script>
+</body>
+</html>
