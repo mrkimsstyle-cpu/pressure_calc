@@ -3,8 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="압력변환기">
+<meta name="application-name" content="압력변환기">
 <title>압력 단위 변환기 (kg/cm² · psi · bar)</title>
 <style>
 :root{--bg:#f4f6f9;--card:#fff;--text:#111827;--sub:#6b7280;--border:#e5e7eb;--primary:#2563eb;--psoft:#eff6ff;--pborder:#93c5fd;--inbg:#f9fafb;--badge:#f3f4f6;--ok:#059669}
@@ -46,8 +48,9 @@ body{margin:0;padding:16px;font-family:-apple-system,BlinkMacSystemFont,"Apple S
 .msheet{background:var(--card);color:var(--text);border-radius:20px;width:100%;max-width:440px;padding:20px}
 .msheet h3{margin:0 0 10px;font-size:1.05rem}
 .msheet ol{margin:0 0 16px;padding-left:20px;font-size:.88rem;line-height:1.65}
+.msheet .tip{background:var(--badge);border-radius:10px;padding:10px 12px;font-size:.8rem;color:var(--sub);margin-bottom:14px;line-height:1.5}
 .mclose{width:100%;background:var(--primary);color:#fff;border:none;border-radius:12px;padding:12px;font-size:.92rem;font-weight:700;cursor:pointer}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 18px;border-radius:999px;font-size:.84rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:200}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 18px;border-radius:999px;font-size:.84rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:200;white-space:nowrap}
 .toast.show{opacity:1}
 </style>
 </head>
@@ -103,15 +106,31 @@ body{margin:0;padding:16px;font-family:-apple-system,BlinkMacSystemFont,"Apple S
     </div>
   </div>
   <div class="card">
-    <div class="lbl"><span>기기 저장 및 오프라인 사용</span><span>데이터 없이 실행 가능</span></div>
+    <div class="lbl"><span>홈 화면 앱 추가 및 기기 저장</span><span>원터치 바로가기</span></div>
     <div class="dgrid">
-      <button type="button" class="dbtn" onclick="dlHtml('압력단위변환기_오프라인.html')"><span class="ic">🤖</span><span>Android</span><span class="ds">HTML 파일 저장</span></button>
-      <button type="button" class="dbtn" onclick="openIos()"><span class="ic">🍎</span><span>iPhone</span><span class="ds">홈 화면 앱 추가</span></button>
+      <button type="button" class="dbtn" onclick="addAndroid()"><span class="ic">🤖</span><span>Android</span><span class="ds">홈·앱스 화면 추가</span></button>
+      <button type="button" class="dbtn" onclick="openModal('iosModal')"><span class="ic">🍎</span><span>iPhone</span><span class="ds">홈 화면 앱 추가</span></button>
       <button type="button" class="dbtn" onclick="dlHtml('pressure_calculator.html')"><span class="ic">💻</span><span>PC 저장</span><span class="ds">로컬 파일 다운로드</span></button>
     </div>
   </div>
 </div>
-<div class="modal" id="iosModal" onclick="if(event.target===this)closeIos()">
+
+<!-- Android 안내 모달 -->
+<div class="modal" id="andModal" onclick="if(event.target===this)closeModal('andModal')">
+  <div class="msheet">
+    <h3>🤖 안드로이드 홈·앱스 화면에 추가</h3>
+    <ol>
+      <li>브라우저 우측 상단(또는 하단)의 <strong>메뉴 버튼(⋮ 또는 ≡)</strong>을 누릅니다.</li>
+      <li><strong>[현재 페이지 추가]</strong> 또는 <strong>[홈 화면에 추가]</strong>를 선택합니다.</li>
+      <li><strong>[홈 화면]</strong> 또는 <strong>[앱스 화면]</strong>을 선택하면 앱 아이콘으로 등록됩니다.</li>
+    </ol>
+    <div class="tip">💡 카카오톡에서 링크를 여셨다면 우측 하단 <strong>점 3개(⋮) → 다른 브라우저로 열기</strong> 후 추가해 주세요.</div>
+    <button type="button" class="mclose" onclick="closeModal('andModal')">확인</button>
+  </div>
+</div>
+
+<!-- iOS 안내 모달 -->
+<div class="modal" id="iosModal" onclick="if(event.target===this)closeModal('iosModal')">
   <div class="msheet">
     <h3>🍎 아이폰 홈 화면에 추가하기</h3>
     <ol>
@@ -119,14 +138,18 @@ body{margin:0;padding:16px;font-family:-apple-system,BlinkMacSystemFont,"Apple S
       <li>메뉴를 내려 <strong>[홈 화면에 추가]</strong>를 선택합니다.</li>
       <li>우측 상단 <strong>[추가]</strong>를 누르면 바탕화면에 앱 아이콘이 생성됩니다.</li>
     </ol>
-    <button type="button" class="mclose" onclick="closeIos()">확인</button>
+    <button type="button" class="mclose" onclick="closeModal('iosModal')">확인</button>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
 <script>
 const K2P=14.2233433,K2B=0.980665,K2K=98.0665,K2M=0.0980665;
-let dec=2,curKg=5;
+let dec=2,curKg=5,deferredPrompt=null;
 const inKg=document.getElementById('inKg'),inPsi=document.getElementById('inPsi'),inBar=document.getElementById('inBar'),vKpa=document.getElementById('vKpa'),vMpa=document.getElementById('vMpa');
+
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e});
+
 function toastMsg(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),2000)}
 function fmt(n){return isNaN(n)?'':Number(n.toFixed(dec)).toString()}
 function hi(k){document.querySelectorAll('.pbtn').forEach(b=>{b.classList.toggle('active',!isNaN(k)&&Math.abs(k-parseFloat(b.dataset.kg))<0.001)})}
@@ -139,9 +162,10 @@ function resetAll(){setKg(5,false);toastMsg('기본값 5 kg/cm²로 초기화되
 function toggleTheme(){document.body.classList.toggle('dark');document.getElementById('themeBtn').textContent=document.body.classList.contains('dark')?'☀️':'🌙'}
 function copyText(t){if(navigator.clipboard){navigator.clipboard.writeText(t)}else{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}toastMsg('복사됨: '+t)}
 function copyVal(id,u,btn){const v=document.getElementById(id).value;if(!v)return;copyText(v+' '+u);btn.textContent='완료';btn.classList.add('copied');setTimeout(()=>{btn.textContent='복사';btn.classList.remove('copied')},1200)}
-function dlHtml(fn){const c=document.documentElement.cloneNode(true);c.querySelector('#iosModal').classList.remove('open');c.querySelector('#toast').classList.remove('show');const b=new Blob(['<!DOCTYPE html>\n'+c.outerHTML],{type:'text/html;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);toastMsg('다운로드 시작: '+fn)}
-function openIos(){document.getElementById('iosModal').classList.add('open')}
-function closeIos(){document.getElementById('iosModal').classList.remove('open')}
+function dlHtml(fn){const c=document.documentElement.cloneNode(true);c.querySelectorAll('.modal').forEach(m=>m.classList.remove('open'));c.querySelector('#toast').classList.remove('show');const b=new Blob(['<!DOCTYPE html>\n'+c.outerHTML],{type:'text/html;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);toastMsg('다운로드 시작: '+fn)}
+async function addAndroid(){if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null}else{openModal('andModal')}}
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
 setKg(5,false);
 </script>
 </body>
